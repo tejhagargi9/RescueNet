@@ -7,10 +7,9 @@ import Home from './pages/home';
 function App() {
   return (
     <Router>
-        <Navbar/>
-
+      <Navbar />
       <Routes>
-        <Route path="/" element={<Home/>} />
+        <Route path="/" element={<Home />} />
       </Routes>
     </Router>
   );
