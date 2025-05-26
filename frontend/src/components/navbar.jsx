@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Shield, Home, Users, MapPin, Heart, AlertTriangle, User } from 'lucide-react';
 import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/clerk-react';
+import { useAuth, useUser } from '@clerk/clerk-react';
 
 const RescueNetNavbar = () => {
   const [activeItem, setActiveItem] = useState('home');
   const [isScrolled, setIsScrolled] = useState(false);
+  const { isSignedIn } = useAuth(); // detects sign-in state
+  const { user } = useUser(); // gets user object when signed in
 
   useEffect(() => {
     const handleScroll = () => {
@@ -13,6 +16,37 @@ const RescueNetNavbar = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  useEffect(() => {
+    if (isSignedIn && user) {
+      localStorage.setItem('isUser', 'true');
+    } else {
+      localStorage.removeItem('isUser');
+      localStorage.removeItem('userInfo');  
+    }
+  }, [isSignedIn, user]); 
+
+  useEffect(() => {
+  if (isSignedIn && user) {
+    localStorage.setItem('isUser', 'true');
+
+    // Extract user info
+    const userInfo = {
+      id: user.id,
+      fullName: user.fullName,
+      email: user.primaryEmailAddress?.emailAddress || '',
+      firstName: user.firstName,
+      lastName: user.lastName,
+      imageUrl: user.imageUrl,
+      createdAt: user.createdAt,
+    };
+
+    localStorage.setItem('userInfo', JSON.stringify(userInfo));
+  } else {
+    localStorage.removeItem('isUser');
+    localStorage.removeItem('userInfo');
+  }
+}, [isSignedIn, user]);
 
   const navItems = [
     { id: 'home', icon: Home, label: 'Home' },

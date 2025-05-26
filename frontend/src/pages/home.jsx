@@ -4,10 +4,12 @@ import {
   Star, CheckCircle, Zap, Globe, Award, TrendingUp, ArrowRight,
   Play, Download, Smartphone, Wifi
 } from 'lucide-react';
+import Flow from '../components/flow';
 
 const Home = () => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [scrollY, setScrollY] = useState(0);
+  const [showFlow, setShowFlow] = useState(false);
 
   useEffect(() => {
     const handleMouseMove = (e) => {
@@ -91,6 +93,9 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-100 via-blue-100 to-indigo-200 relative overflow-hidden">
+      
+      {/* Flow Component */}
+      <Flow onComplete={() => setShowFlow(false)} />
       
       {/* Animated Background */}
       <div className="fixed inset-0 z-0">
