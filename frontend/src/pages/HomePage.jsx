@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Shield, AlertTriangle, MapPin, Heart, Users, Phone, Clock, 
+import {
+  Shield, AlertTriangle, MapPin, Heart, Users, Phone, Clock,
   Star, CheckCircle, Zap, Globe, Award, TrendingUp, ArrowRight,
   Play, Download, Smartphone, Wifi
 } from 'lucide-react';
-import Flow from '../components/flow';
+import Flow from '../components/OnboardingFlow';
 
 const Home = () => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -13,9 +13,9 @@ const Home = () => {
 
   useEffect(() => {
     const handleMouseMove = (e) => {
-      setMousePosition({ 
+      setMousePosition({
         x: (e.clientX / window.innerWidth) * 100,
-        y: (e.clientY / window.innerHeight) * 100 
+        y: (e.clientY / window.innerHeight) * 100
       });
     };
 
@@ -25,7 +25,7 @@ const Home = () => {
 
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('scroll', handleScroll);
-    
+
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('scroll', handleScroll);
@@ -93,14 +93,14 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-100 via-blue-100 to-indigo-200 relative overflow-hidden">
-      
+
       {/* Flow Component */}
       <Flow onComplete={() => setShowFlow(false)} />
-      
+
       {/* Animated Background */}
       <div className="fixed inset-0 z-0">
         {/* Dynamic Gradient Orbs */}
-        <div 
+        <div
           className="absolute w-96 h-96 bg-gradient-to-r from-blue-500/40 to-purple-600/40 rounded-full blur-3xl animate-pulse"
           style={{
             left: `${mousePosition.x * 0.02}%`,
@@ -108,7 +108,7 @@ const Home = () => {
             transform: `translate(-50%, -50%) scale(${1 + scrollY * 0.0005})`
           }}
         />
-        <div 
+        <div
           className="absolute w-80 h-80 bg-gradient-to-r from-pink-500/35 to-red-600/35 rounded-full blur-3xl animate-pulse delay-1000"
           style={{
             right: `${mousePosition.x * 0.015}%`,
@@ -116,7 +116,7 @@ const Home = () => {
             transform: `translate(50%, 50%) scale(${1.2 + scrollY * 0.0003})`
           }}
         />
-        <div 
+        <div
           className="absolute w-64 h-64 bg-gradient-to-r from-green-500/40 to-teal-600/40 rounded-full blur-3xl animate-pulse delay-500"
           style={{
             left: `${50 + mousePosition.x * 0.01}%`,
@@ -157,11 +157,11 @@ const Home = () => {
 
       {/* Main Content */}
       <div className="relative z-10">
-        
+
         {/* Hero Section */}
         <section className="min-h-screen flex items-center justify-center px-4 pt-20">
           <div className="max-w-6xl mx-auto text-center">
-            
+
             {/* Main Title */}
             <div className="mb-8 animate-fade-in">
               <h1 className="text-7xl md:text-8xl font-black mb-6 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent leading-tight">
@@ -172,7 +172,7 @@ const Home = () => {
                 Your Digital Lifeline
               </p>
               <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-                Advanced emergency response platform connecting you to help when every second counts. 
+                Advanced emergency response platform connecting you to help when every second counts.
                 AI-powered, community-driven, and always ready.
               </p>
             </div>
@@ -211,7 +211,7 @@ const Home = () => {
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
               <h2 className="text-5xl font-bold text-gray-800 mb-6">
-                Powerful Features for 
+                Powerful Features for
                 <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"> Ultimate Safety</span>
               </h2>
               <p className="text-xl text-gray-600 max-w-2xl mx-auto">
@@ -221,7 +221,7 @@ const Home = () => {
 
             <div className="grid md:grid-cols-2 gap-8">
               {features.map((feature, index) => (
-                <div 
+                <div
                   key={index}
                   className="group bg-white/90 backdrop-blur-sm rounded-3xl p-8 shadow-xl border border-white/50 hover:shadow-2xl transition-all duration-500 hover:scale-105"
                   style={{ animationDelay: `${feature.delay}ms` }}

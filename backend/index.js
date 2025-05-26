@@ -1,30 +1,36 @@
-const express = require("express");
-const mongoose = require("mongoose");
-const cors = require("cors");
-require("dotenv").config();
+require('dotenv').config();
+const express = require('express');
+const cors = require('cors');
+const connectDB = require('./config/db');
+const errorHandler = require('./middleware/errorHandler');
+
+const userRoutes = require('./routes/userRoutes');
 
 const app = express();
 
+// Connect to Database
+connectDB();
+
 // Middleware
-app.use(cors());
+app.use(cors({
+  // origin: process.env.FRONTEND_URL, 
+  origin: '*',
+  credentials: true
+}));
+
 app.use(express.json());
 
-app.get("/", (req, res) => {
-  res.send("Disaster Preparedness and Response System API is running.");
+// Mount Routes
+app.use('/api/users', userRoutes);
+
+
+// Root route for testing
+app.get('/', (req, res) => {
+  res.send('RescueNet API Running');
 });
 
-// MongoDB connection
-mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => {
-    console.log("MongoDB connected");
-  })
-  .catch((err) => {
-    console.error("MongoDB connection error:", err);
-  });
+// Error Handling Middleware (should be last)
+app.use(errorHandler);
 
-// Server listen   
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-});
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
