@@ -5,17 +5,16 @@ import './index.css'
 import { ClerkProvider } from '@clerk/clerk-react'
 
 // Import your Publishable Key from Vite environment variables
-const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
+const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
 if (!PUBLISHABLE_KEY) {
-  throw new Error('Missing Publishable Key')
+  throw new Error('Missing VITE_CLERK_PUBLISHABLE_KEY in .env');
 }
 
-// Get the root element safely
-const rootElement = document.getElementById('root')
+const rootElement = document.getElementById('root');
 
 if (!rootElement) {
-  throw new Error("Root element with id 'root' not found")
+  throw new Error("Root element with id 'root' not found");
 }
 
 ReactDOM.createRoot(rootElement).render(
@@ -24,4 +23,4 @@ ReactDOM.createRoot(rootElement).render(
       <App />
     </ClerkProvider>
   </React.StrictMode>
-)
+);
