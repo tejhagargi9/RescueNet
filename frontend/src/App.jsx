@@ -8,6 +8,7 @@ import HomePage from './pages/HomePage'; // Your Home component
 import AccountPage from './pages/AccountPage';
 import { AuthProvider, useAuthContext } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute'; // Optional
+import DisasterPreparednessApp from './pages/DisastersInfoPage';
 
 // Component to handle redirection after sign in/out and onboarding check
 function AppContent() {
@@ -28,12 +29,15 @@ function AppContent() {
       <OnboardingFlow onComplete={() => console.log("Onboarding completed/closed.")} />
       <Routes>
         <Route path="/" element={<HomePage />} />
+        
 
         {/* Protected Routes */}
         <Route element={<ProtectedRoute />}>
           <Route path="/account" element={<AccountPage />} />
           {/* Add other protected routes here */}
         </Route>
+
+        <Route path="/disasterPrepare" element={<DisasterPreparednessApp />} />
 
         {/* Example of a route that requires sign-in but not necessarily full onboarding yet */}
         {/* <Route path="/some-feature" element={
