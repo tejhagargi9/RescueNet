@@ -11,7 +11,7 @@ exports.createIncident = async (req, res) => {
       imageUrl = await uploadImage(imageFile.buffer, 'incidents');
     }
 
-    const newIncident = new Incident({
+    const newIncident = new Incident({ 
       title,
       description,
       incidentPlace,

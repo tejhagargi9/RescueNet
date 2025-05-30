@@ -69,6 +69,26 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+ const fetchAllUsers = useCallback(async () => {
+  setIsLoading(true);
+  setError(null);
+  try {
+    const response = await apiClient.get('/users/allUsers');
+    console.log(response)
+    console.log("all users: ",response.data)
+
+    return response.data; // You can handle this in the component calling it
+  } catch (err) {
+    console.error("Failed to fetch all users:", err);
+    setError(err.response?.data?.message || "Failed to fetch all users.");
+    throw err;
+  } finally {
+    setIsLoading(false);
+  }
+}, []);
+
+
+
   const deleteUserAccount = async () => {
     setIsLoading(true); // Appropriate for a global action like account deletion
     try {
@@ -86,19 +106,19 @@ export const AuthProvider = ({ children }) => {
   };
 
   const value = {
-    currentUser,
-    isSignedIn,
-    clerkUser,
-    currentUser,
-    isLoading: isLoading || !isClerkLoaded, // Combined loading state
-    error,
-    fetchUserProfile,
-    updateUserProfile,
-    deleteUserAccount,
-    // Derived values for convenience, will update when currentUser changes
-    userRole: currentUser?.role,
-    isOnboarded: currentUser?.onboarded,
-  };
+  currentUser,
+  isSignedIn,
+  clerkUser,
+  isLoading: isLoading || !isClerkLoaded,
+  error,
+  fetchUserProfile,
+  updateUserProfile,
+  deleteUserAccount,
+  fetchAllUsers, // <-- Add this
+  userRole: currentUser?.role,
+  isOnboarded: currentUser?.onboarded,
+};
+
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

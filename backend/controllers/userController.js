@@ -39,6 +39,25 @@ const getCurrentUser = async (req, res, next) => {
   }
 };
 
+// Get all users (Admin or management feature)
+const getAllUsers = async (req, res, next) => {
+  try {
+    const requestingUserId = req.auth.userId;
+    const requestingUser = await User.findOne({ clerkUserId: requestingUserId }).select('role');
+
+    if (!requestingUser || requestingUser.role !== 'admin') { // Assuming 'admin' role
+      return res.status(403).json({ message: 'Forbidden: You do not have permission to access this resource.' });
+    }
+
+    const users = await User.find().sort({ createdAt: -1 });
+    res.status(200).json(users);
+  } catch (error) {
+    console.error('Error fetching all users:', error);
+    next(error);
+  }
+};
+
+
 // Onboard or Update user profile
 const onboardOrUpdateUser = async (req, res, next) => {
   try {
@@ -132,4 +151,5 @@ module.exports = {
   getCurrentUser,
   onboardOrUpdateUser,
   deleteCurrentUser,
+  getAllUsers
 };
