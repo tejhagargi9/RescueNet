@@ -70,6 +70,8 @@ const AdminPage = () => {
   return (
     <div style={{ padding: '20px', marginTop: '100px' }}>
       <h1>Disaster Alert Admin Panel</h1>
+
+
       {error && !showForm && <p style={{ color: 'red' }}>Error: {error}</p>}
 
       {!showForm && <button onClick={handleCreateNew}>Create New Alert</button>}
