@@ -36,14 +36,14 @@ function AppContent() {
       <OnboardingFlow onComplete={() => console.log("Onboarding completed/closed.")} />
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route path="/admin" element={<AdminDashboardPage />} />
-        <Route path="/communities" element={<CommunitiesPage />} />
-        <Route path="/track" element={<ViewReportsMapPage />} />
-        <Route path="/sos" element={<CreateReportPage />} />
-        <Route path="/account" element={<AccountPage />} />
+
         {/* Protected Routes */}
         <Route element={<ProtectedRoute />}>
-
+          <Route path="/admin" element={<AdminDashboardPage />} />
+          <Route path="/communities" element={<CommunitiesPage />} />
+          <Route path="/track" element={<ViewReportsMapPage />} />
+          <Route path="/sos" element={<CreateReportPage />} />
+          <Route path="/account" element={<AccountPage />} />
           {/* Add other protected routes here */}
         </Route>
 

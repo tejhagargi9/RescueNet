@@ -1,22 +1,25 @@
 // controllers/reportController.js
-const Report = require('../models/reportModel');
-// const User = require('../models/User'); // If you need to fetch user details
+const Report = require('../models/reportModel'); // Corrected to point to Report.js as per your model file name
 
 // @desc    Create a new report
 // @route   POST /api/reports
 // @access  Public (or Private if you require authentication)
 exports.createReport = async (req, res) => {
   try {
-    const { message, latitude, longitude, userId, userName } = req.body; // Assuming userId and userName might be sent from frontend if user is logged in
+    // Destructure `filter`. Removed userId and userName.
+    const { message, latitude, longitude, filter } = req.body;
 
     if (!message || latitude === undefined || longitude === undefined) {
       return res.status(400).json({ success: false, message: 'Message, latitude, and longitude are required' });
     }
 
     const reportData = { message, latitude, longitude };
-    if (userId) reportData.userId = userId;
-    if (userName) reportData.userName = userName;
 
+    // Add filter to reportData if it's provided in the request body
+    if (filter) {
+      reportData.filter = filter;
+    }
+    // userId and userName are no longer expected or used
 
     const report = await Report.create(reportData);
 
@@ -26,6 +29,11 @@ exports.createReport = async (req, res) => {
     });
   } catch (error) {
     console.error('Error creating report:', error);
+    if (error.name === 'ValidationError') {
+      // Extract and send validation error messages
+      const messages = Object.values(error.errors).map(val => val.message);
+      return res.status(400).json({ success: false, message: messages.join('. ') });
+    }
     res.status(500).json({ success: false, message: 'Server Error', error: error.message });
   }
 };
@@ -35,7 +43,15 @@ exports.createReport = async (req, res) => {
 // @access  Public (or Private)
 exports.getAllReports = async (req, res) => {
   try {
+    // To enable filtering by the 'filter' field via query parameter (e.g., /api/reports?filter=medical):
+    // const queryConditions = {};
+    // if (req.query.filter) {
+    //   queryConditions.filter = req.query.filter;
+    // }
+    // const reports = await Report.find(queryConditions).sort({ timestamp: -1 });
+
     const reports = await Report.find().sort({ timestamp: -1 }); // Sort by newest first
+
     res.status(200).json({
       success: true,
       count: reports.length,
@@ -49,7 +65,7 @@ exports.getAllReports = async (req, res) => {
 
 // @desc    Delete a report
 // @route   DELETE /api/reports/:id
-// @access  Private (typically, only an admin or the user who created it should delete)
+// @access  Private (typically, only an admin should delete)
 exports.deleteReport = async (req, res) => {
   try {
     const report = await Report.findById(req.params.id);
@@ -58,20 +74,22 @@ exports.deleteReport = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Report not found' });
     }
 
-    // Optional: Add authorization check here (e.g., if req.user.role !== 'admin' && report.userId.toString() !== req.user.id)
-    // For now, allowing deletion if found.
+    // Optional: Add authorization check here (e.g., if req.user.role !== 'admin')
+    // Since userId is not stored on the report, user-specific ownership checks are not applicable here.
+    // For now, allowing deletion if found and assuming authorization is handled elsewhere (e.g., admin-only route).
 
     await report.deleteOne(); // or report.remove() for older mongoose versions
 
     res.status(200).json({
       success: true,
       message: 'Report deleted successfully',
-      data: {}, // Send back empty object or the id of deleted item
+      data: { id: req.params.id }, // Send back id of deleted item for client-side updates
     });
   } catch (error) {
     console.error('Error deleting report:', error);
-    if (error.kind === 'ObjectId') {
-      return res.status(404).json({ success: false, message: 'Report not found with this ID' });
+    // Handle cases where the ID format is invalid (CastError) or simply not found
+    if (error.name === 'CastError' || error.kind === 'ObjectId') {
+      return res.status(404).json({ success: false, message: 'Report not found: Invalid ID format' });
     }
     res.status(500).json({ success: false, message: 'Server Error', error: error.message });
   }
