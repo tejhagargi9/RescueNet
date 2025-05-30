@@ -1,75 +1,82 @@
+// AuthContext.jsx
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useAuth, useUser } from '@clerk/clerk-react';
-import apiClient from '../api/axiosConfig'; // Ensure this path is correct
+import apiClient from '../api/axiosConfig';
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const { isSignedIn, isLoaded: isClerkLoaded, signOut: clerkSignOut } = useAuth();
   const { user: clerkUser } = useUser();
-  const [currentUser, setCurrentUser] = useState(null); // Our backend user profile
-  const [isLoading, setIsLoading] = useState(true); // Loading state for our user profile
-  const [error, setError] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [isProfileLoading, setIsProfileLoading] = useState(true); // Renamed for clarity: specific to profile loading
+  const [error, setError] = useState(null); // General error for auth/profile
 
   const fetchUserProfile = useCallback(async () => {
     if (isSignedIn && clerkUser) {
-      setIsLoading(true);
+      setIsProfileLoading(true); // Use specific profile loading
       setError(null);
       try {
         const response = await apiClient.get('/users/me');
         setCurrentUser(response.data);
-        // Store essential info in localStorage if needed, but context is primary
-        // These are fine for quick access or non-critical features,
-        // but rely on currentUser from context for critical/reactive data.
         localStorage.setItem('userRole', response.data.role);
         localStorage.setItem('onBoarded', response.data.onboarded.toString());
-
       } catch (err) {
         console.error("Failed to fetch user profile:", err);
         setError(err.response?.data?.message || "Failed to load user data.");
-        // Consider setting currentUser to null if profile fetch fails catastrophically
-        // setCurrentUser(null); // If appropriate for your error handling strategy
       } finally {
-        setIsLoading(false);
+        setIsProfileLoading(false); // Use specific profile loading
       }
     } else {
       setCurrentUser(null);
-      setIsLoading(false); // Ensure loading is false if not signed in
+      setIsProfileLoading(false);
       localStorage.removeItem('userRole');
       localStorage.removeItem('onBoarded');
     }
-  }, [isSignedIn, clerkUser]); // clerkUser dependency is important
+  }, [isSignedIn, clerkUser]);
 
   useEffect(() => {
     if (isClerkLoaded) {
       fetchUserProfile();
     }
-    // If !isClerkLoaded, isLoading in context value will be true,
-    // consumers should wait.
-  }, [isClerkLoaded, isSignedIn, fetchUserProfile]); // isSignedIn added to re-fetch if it changes post-load
+  }, [isClerkLoaded, isSignedIn, fetchUserProfile]);
 
   const updateUserProfile = async (data) => {
-    // No need to set isLoading(true) here as OnboardingFlow handles its own submitting state
-    // unless this function is used elsewhere without its own loading indicator.
-    // For now, let's assume OnboardingFlow is the primary user and has its own state.
-    // If other parts of app use this and expect loading state, then re-add: setIsLoading(true);
+    // This function should not alter AuthContext's isProfileLoading
     try {
       const response = await apiClient.put('/users/me', data);
-      setCurrentUser(response.data); // Update context state
+      setCurrentUser(response.data);
       localStorage.setItem('userRole', response.data.role);
       localStorage.setItem('onBoarded', response.data.onboarded.toString());
-      // setIsLoading(false); // If setIsLoading(true) was added
-      return response.data; // This is good, returns the updated profile
+      return response.data;
     } catch (err) {
       console.error("Failed to update user profile:", err);
+      // Consider if this should set the global error or throw
       setError(err.response?.data?.message || "Failed to update profile.");
-      // setIsLoading(false); // If setIsLoading(true) was added
-      throw err; // Re-throw for the caller to handle
+      throw err;
     }
   };
 
+  const fetchAllUsers = useCallback(async () => {
+    // REMOVED: setIsLoading(true) and setError(null) from AuthContext state
+    try {
+      const response = await apiClient.get('/users/allUsers');
+      console.log("all users from AuthContext: ", response.data); // Keep for debugging if needed
+      return response.data;
+    } catch (err) {
+      console.error("Failed to fetch all users (AuthContext):", err);
+      // REMOVED: setError(...) from AuthContext state
+      throw err; // Re-throw for the calling component to handle
+    }
+    // REMOVED: finally { setIsLoading(false); }
+  }, []); // apiClient is stable, no other deps from context needed here
+
   const deleteUserAccount = async () => {
-    setIsLoading(true); // Appropriate for a global action like account deletion
+    // This action fundamentally changes auth state, so using a loading state might be okay,
+    // but ensure it leads to a sign-out flow rather than unmounting/remounting the dashboard.
+    // For now, let's assume it's handled correctly leading to sign out.
+    // If this also causes the glitch, it would need similar decoupling or careful handling.
+    setIsProfileLoading(true); // Or a more specific `isDeletingAccountLoading`
     try {
       await apiClient.delete('/users/me');
       setCurrentUser(null);
@@ -78,22 +85,23 @@ export const AuthProvider = ({ children }) => {
     } catch (err) {
       console.error("Failed to delete user account:", err);
       setError(err.response?.data?.message || "Failed to delete account.");
-      throw err; // Re-throw for the caller to handle
+      throw err;
     } finally {
-      setIsLoading(false);
+      setIsProfileLoading(false);
     }
   };
 
   const value = {
+    currentUser,
     isSignedIn,
     clerkUser,
-    currentUser,
-    isLoading: isLoading || !isClerkLoaded, // Combined loading state
-    error,
+    // isLoading now primarily reflects auth readiness and profile loading
+    isLoading: isProfileLoading || !isClerkLoaded,
+    error, // This is the global auth/profile error
     fetchUserProfile,
     updateUserProfile,
     deleteUserAccount,
-    // Derived values for convenience, will update when currentUser changes
+    fetchAllUsers,
     userRole: currentUser?.role,
     isOnboarded: currentUser?.onboarded,
   };

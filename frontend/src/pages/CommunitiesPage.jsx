@@ -5,7 +5,7 @@ import { useAuthContext } from '../context/AuthContext'; // Using the mock auth
 
 import PostCard from '../components/communities/PostCard';
 import PostFormModal from '../components/communities/PostFormModal';
-import { PlusCircle, Users, Search, Filter, ArrowDownUp, AlertTriangle, Loader2, ListChecks, UserCheck } from 'lucide-react';
+import { PlusCircle, Users, Search, Filter, ArrowDownUp, AlertTriangle, Loader2, ListChecks, UserCheck, MapPin } from 'lucide-react'; // Added MapPin for potential use
 
 const CommunitiesPage = () => {
   const {
@@ -31,11 +31,22 @@ const CommunitiesPage = () => {
   // Filter states
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all'); // 'all' or 'my'
-  const [sortBy, setSortBy] = useState('newest'); // 'newest' or 'oldest'
+  const [sortBy, setSortBy] = useState('newest'); // 'newest', 'oldest', or 'near_me'
 
   useEffect(() => {
+    console.log("currentUser: ", currentUser)
     fetchIncidents();
   }, [fetchIncidents]);
+
+  // Effect to reset sortBy if 'near_me' is selected but no longer applicable
+  useEffect(() => {
+    const userAddresses = (isSignedIn && currentUser && Array.isArray(currentUser.addresses)) ? currentUser.addresses : [];
+    const hasUserAddresses = userAddresses.length > 0;
+    if (sortBy === 'near_me' && !hasUserAddresses) {
+      setSortBy('newest');
+    }
+  }, [isSignedIn, currentUser, sortBy, setSortBy]);
+
 
   const handleCreateNew = () => {
     if (!isSignedIn) {
@@ -62,20 +73,16 @@ const CommunitiesPage = () => {
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
       await deleteIncident(id);
-      // Optionally, refresh incidents or rely on context's state update
-      // fetchIncidents(); // if deleteIncident doesn't optimistically update or re-fetch
     }
   };
 
   const handleFormSubmit = async (incidentData) => {
     let success;
-    // CRITICAL: Add userId if creating new post
     const dataWithUser = { ...incidentData, userId: currentUser?._id };
 
     if (isEditing && currentPostToEdit) {
-      success = await updateIncident(currentPostToEdit._id, incidentData); // Backend should verify ownership
+      success = await updateIncident(currentPostToEdit._id, incidentData);
     } else {
-      // Ensure createIncident in context can handle/pass userId to backend
       success = await createIncident(dataWithUser);
     }
 
@@ -84,9 +91,8 @@ const CommunitiesPage = () => {
       setIsEditing(false);
       setCurrentPostToEdit(null);
       setContextCurrentIncident(null);
-      // fetchIncidents(); // Re-fetch to see changes, or rely on optimistic updates in context
     }
-    return success; // Important for the form to know if it should clear itself
+    return success;
   };
 
   const handleCancelForm = () => {
@@ -99,6 +105,9 @@ const CommunitiesPage = () => {
 
   const filteredAndSortedIncidents = useMemo(() => {
     let processedIncidents = [...incidents];
+    
+    const userAddresses = (isSignedIn && currentUser && Array.isArray(currentUser.addresses)) ? currentUser.addresses : [];
+    const hasUserAddresses = userAddresses.length > 0;
 
     // Filter by type (All or My Posts)
     if (filterType === 'my' && currentUser) {
@@ -109,15 +118,42 @@ const CommunitiesPage = () => {
     if (searchTerm) {
       const lowerSearchTerm = searchTerm.toLowerCase();
       processedIncidents = processedIncidents.filter(inc =>
-        inc.title.toLowerCase().includes(lowerSearchTerm) ||
-        inc.description.toLowerCase().includes(lowerSearchTerm) ||
-        inc.incidentPlace.toLowerCase().includes(lowerSearchTerm)
+        inc.title?.toLowerCase().includes(lowerSearchTerm) ||
+        inc.description?.toLowerCase().includes(lowerSearchTerm) ||
+        inc.incidentPlace?.toLowerCase().includes(lowerSearchTerm)
       );
     }
 
     // Sort
     processedIncidents.sort((a, b) => {
-      if (sortBy === 'newest') {
+      if (sortBy === 'near_me') {
+        let aIsNear = false;
+        if (hasUserAddresses && typeof a.incidentPlace === 'string' && a.incidentPlace) {
+            aIsNear = userAddresses.some(addr =>
+                typeof addr === 'string' && addr && (
+                    a.incidentPlace.toLowerCase().includes(addr.toLowerCase()) ||
+                    addr.toLowerCase().includes(a.incidentPlace.toLowerCase())
+                )
+            );
+        }
+
+        let bIsNear = false;
+        if (hasUserAddresses && typeof b.incidentPlace === 'string' && b.incidentPlace) {
+            bIsNear = userAddresses.some(addr =>
+                typeof addr === 'string' && addr && (
+                    b.incidentPlace.toLowerCase().includes(addr.toLowerCase()) ||
+                    addr.toLowerCase().includes(b.incidentPlace.toLowerCase())
+                )
+            );
+        }
+
+        if (aIsNear && !bIsNear) return -1; // a comes first
+        if (!aIsNear && bIsNear) return 1;  // b comes first
+        
+        // If both are equally near (both near or both not near), or if 'near_me' isn't applicable,
+        // sort by newest as secondary criteria.
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      } else if (sortBy === 'newest') {
         return new Date(b.createdAt) - new Date(a.createdAt);
       } else { // oldest
         return new Date(a.createdAt) - new Date(b.createdAt);
@@ -125,11 +161,11 @@ const CommunitiesPage = () => {
     });
 
     return processedIncidents;
-  }, [incidents, searchTerm, filterType, sortBy, currentUser]);
+  }, [incidents, searchTerm, filterType, sortBy, currentUser, isSignedIn]);
 
-  // Enhanced loading state: true if context is loading and no incidents yet, or if form is submitting
   const isLoading = contextLoading && incidents.length === 0;
 
+  const canSortByNearMe = isSignedIn && currentUser && Array.isArray(currentUser.addresses) && currentUser.addresses.length > 0;
 
   return (
     <div className="min-h-screen !pt-28 bg-gradient-to-br from-sky-100 via-indigo-50 to-purple-100 p-4 sm:p-6 lg:p-8">
@@ -197,7 +233,7 @@ const CommunitiesPage = () => {
             </div>
           </div>
 
-          {/* Sort By (Newest/Oldest) */}
+          {/* Sort By (Newest/Oldest/Near Me) */}
           <div className="md:col-span-1">
             <label htmlFor="sort-by" className="block text-sm font-medium text-slate-700 mb-1">
               <ArrowDownUp size={16} className="inline mr-1" /> Sort By
@@ -210,6 +246,10 @@ const CommunitiesPage = () => {
             >
               <option value="newest">Newest First</option>
               <option value="oldest">Oldest First</option>
+              <option value="near_me" disabled={!canSortByNearMe}>
+                Near Me { !canSortByNearMe && isSignedIn && '(No addresses)'}
+                { !canSortByNearMe && !isSignedIn && '(Log in)'}
+              </option>
             </select>
           </div>
         </div>
@@ -242,7 +282,7 @@ const CommunitiesPage = () => {
             <Users size={48} className="mx-auto mb-4 text-indigo-400" />
             <h3 className="text-2xl font-semibold mb-2">No Alerts Found</h3>
             <p className="text-md">
-              {searchTerm || filterType === 'my'
+              {searchTerm || filterType === 'my' || (sortBy === 'near_me' && canSortByNearMe)
                 ? "No alerts match your current filters. Try adjusting them or "
                 : "There are no community alerts yet. "}
               {isSignedIn && (
@@ -250,6 +290,12 @@ const CommunitiesPage = () => {
                   be the first to post one!
                 </button>
               )}
+               {!isSignedIn && sortBy === 'near_me' && !canSortByNearMe && (
+                 " Log in and add addresses to use 'Near Me' sort."
+               )}
+               {isSignedIn && sortBy === 'near_me' && !canSortByNearMe && (
+                 " Add addresses to your profile to use 'Near Me' sort."
+               )}
             </p>
           </div>
         )}
