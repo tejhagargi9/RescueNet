@@ -15,6 +15,7 @@ export const IncidentProvider = ({ children }) => {
     try {
       const response = await apiClient.get(`/incidents`);
       setIncidents(response.data);
+      console.log(response.data)
     } catch (err) {
       setError(err.response ? err.response.data.message : err.message);
     } finally {

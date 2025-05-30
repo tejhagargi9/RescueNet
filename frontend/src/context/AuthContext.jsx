@@ -18,6 +18,7 @@ export const AuthProvider = ({ children }) => {
       try {
         const response = await apiClient.get('/users/me');
         setCurrentUser(response.data);
+        console.log(currentUser)
         // Store essential info in localStorage if needed, but context is primary
         // These are fine for quick access or non-critical features,
         // but rely on currentUser from context for critical/reactive data.
@@ -85,6 +86,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const value = {
+    currentUser,
     isSignedIn,
     clerkUser,
     currentUser,
