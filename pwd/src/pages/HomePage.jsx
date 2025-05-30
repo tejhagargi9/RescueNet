@@ -51,7 +51,7 @@ function HomePage() { // If this file is App.js, consider renaming the function 
         transition={{ duration: 0.5 }}
         className="flex-grow w-full max-w-4xl p-6"
       >
-                <motion.h1
+        <motion.h1
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.2, duration: 0.5 }}
