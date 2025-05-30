@@ -8,7 +8,7 @@ import ReactDOMServer from 'react-dom/server'; // For rendering Lucide icons to 
 import { useReports } from '../context/ReportContext'; // Assuming this context provides reports
 import {
   Trash2, MapPin, MessageSquare, Clock, Loader2, AlertTriangle, Search, XCircle,
-  Flame, Utensils, Home as ShelterIcon, RadioTower, UserSearch, HelpCircle, Eye, EyeOff, ListFilter
+  Flame, Utensils, Home as ShelterIcon, RadioTower, UserSearch, HelpCircle, Eye, EyeOff, ListFilter, MapPinPlus
 } from 'lucide-react';
 
 // --- Leaflet Icon Fix & Custom Icons ---
@@ -16,6 +16,7 @@ delete L.Icon.Default.prototype._getIconUrl;
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+import CreateLocationModal from '../components/CreateLocationModal';
 
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: markerIcon2x,
@@ -74,7 +75,7 @@ const ChangeView = ({ center, zoom }) => {
 
 // --- Main Page Component ---
 const ViewReportsMapPage = () => {
-  const { reports, loading, error, fetchReports, removeReport } = useReports();
+  const { reports, loading, error, fetchReports, removeReport, addReport } = useReports();
 
   const [mapCenter, setMapCenter] = useState([20.5937, 78.9629]); // Default to India
   const [mapZoom, setMapZoom] = useState(5);
@@ -83,11 +84,26 @@ const ViewReportsMapPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilters, setActiveFilters] = useState(new Set(Object.keys(SPECIFIC_FILTER_CATEGORIES)));
   const [isControlsPanelOpen, setIsControlsPanelOpen] = useState(true);
+  const [isCreateLocationModalOpen, setIsCreateLocationModalOpen] = useState(false);
 
 
   useEffect(() => {
     fetchReports();
   }, [fetchReports]);
+
+  const handleCreateReport = async (reportData) => {
+    const success = await addReport(reportData); // addReport from ReportContext
+    if (success) {
+      // Modal will close itself on success
+      // Optionally: show a global success toast/notification if not handled by modal
+      // fetchReports(); // Only if addReport doesn't optimistically update or if you need fresh server data for sure
+      console.log("Report added successfully via map page handler.");
+    } else {
+      // Error handling is primarily within the modal based on addReport's return value
+      console.error("Failed to add report via map page handler.");
+    }
+    return success; // Return success status for modal to use
+  };
 
   const toggleFilter = useCallback((filterKey) => {
     setActiveFilters(prevFilters => {
@@ -195,12 +211,24 @@ const ViewReportsMapPage = () => {
           <ListFilter className="w-6 h-6 text-slate-700" />
         </button>
 
+        <button
+          onClick={() => setIsCreateLocationModalOpen(true)}
+          className="fixed z-[1001] top-24 right-16 sm:right-[calc(1rem+2.5rem+0.5rem)] p-2.5 bg-white rounded-full shadow-lg hover:bg-slate-100 transition-all text-indigo-600 hover:text-indigo-700"
+          // Example positioning: right-16 is 4rem. If ListFilter button is ~2.5rem wide and at right-4 (1rem), 
+          // this places it to its left with 0.5rem spacing. Adjust as needed.
+          // right-16 on small screens, more calculated on sm+
+          title="Add New Location Report"
+        >
+          <MapPinPlus className="w-6 h-6" />
+        </button>
+
         {/* Controls Panel (Search and Filters) */}
         {isControlsPanelOpen && (
           <div className="absolute top-40 left-4 right-4 md:left-auto md:w-[380px] z-[1000] p-3 sm:p-4 bg-white/95 backdrop-blur-lg shadow-2xl rounded-xl border border-slate-200/50 transition-all duration-300 ease-in-out">
             <div className="space-y-3 sm:space-y-4">
               {/* Search Bar */}
               <div>
+
                 <label htmlFor="search-reports" className="sr-only">Search Reports</label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -221,6 +249,8 @@ const ViewReportsMapPage = () => {
                   )}
                 </div>
               </div>
+
+
 
               {/* Filter Buttons */}
               <div>
@@ -261,6 +291,15 @@ const ViewReportsMapPage = () => {
               </div>
             </div>
           </div>
+        )}
+
+        {isCreateLocationModalOpen && (
+          <CreateLocationModal
+            isOpen={isCreateLocationModalOpen}
+            onClose={() => setIsCreateLocationModalOpen(false)}
+            onReportSubmit={handleCreateReport}
+            filterCategories={SPECIFIC_FILTER_CATEGORIES}
+          />
         )}
 
         <MapContainer

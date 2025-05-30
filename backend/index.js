@@ -8,13 +8,12 @@ const userRoutes = require('./routes/userRoutes');
 const disasterAlertRoutes = require('./routes/disasterAlertRoutes');
 const incidentRoutes = require('./routes/incidentRoutes');
 const reportRoutes = require('./routes/reportRoutes');
+const aiApiRoutes = require('./routes/aiRoutes');
 
 const app = express();
 
 // Connect to Database
 connectDB();
-
-
 
 // Middleware
 app.use(cors({
@@ -31,7 +30,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/alerts', disasterAlertRoutes);
 app.use('/api/incidents', incidentRoutes);
 app.use('/api/reports', reportRoutes);
-
+app.use('/api/ai', aiApiRoutes);
 
 
 // Root route for testing
