@@ -8,6 +8,7 @@ const userRoutes = require('./routes/userRoutes');
 const disasterAlertRoutes = require('./routes/disasterAlertRoutes');
 const incidentRoutes = require('./routes/incidentRoutes');
 const reportRoutes = require('./routes/reportRoutes');
+const sosRoutes = require('./routes/sosRoutes');
 
 const app = express();
 
@@ -30,6 +31,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/alerts', disasterAlertRoutes);
 app.use('/api/incidents', incidentRoutes);
 app.use('/api/reports', reportRoutes);
+app.use('/api/sos', sosRoutes);
 
 
 // Root route for testing

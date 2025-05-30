@@ -5,7 +5,7 @@ import { useReports } from '../context/ReportContext';
 import { Send, MapPin, AlertTriangle, CheckCircle, Loader2, Compass } from 'lucide-react';
 
 const CreateReportPage = () => {
-  const { addReport, loading, error, setError } = useReports();
+  const { triggerSOSAlert, loading, error, setError } = useReports();
   // const { currentUser } = useAuth(); // If you want to associate the report with a user
 
   const [message, setMessage] = useState('');
@@ -82,7 +82,7 @@ const CreateReportPage = () => {
       filter: 'danger',
     };
 
-    const success = await addReport(reportData);
+    const success = await triggerSOSAlert(reportData);
     if (success) {
       setSubmissionStatus('success');
       setMessage('');

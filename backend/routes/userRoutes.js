@@ -1,5 +1,5 @@
 const express = require('express');
-const { getCurrentUser, onboardOrUpdateUser, deleteCurrentUser } = require('../controllers/userController');
+const { getCurrentUser, onboardOrUpdateUser, deleteCurrentUser, updateUserFCMToken, updateUserLocation } = require('../controllers/userController');
 const { requireAuth } = require('../middleware/clerkAuth');
 
 const router = express.Router();
@@ -18,5 +18,11 @@ router.put('/me', requireAuth, onboardOrUpdateUser); // Using PUT on /me for upd
 // @desc    Delete current logged-in user's account
 // @access  Private
 router.delete('/me', requireAuth, deleteCurrentUser);
+
+
+router.post('/fcm-token', requireAuth, updateUserFCMToken);
+router.post('/location', requireAuth, updateUserLocation);
+
+
 
 module.exports = router;

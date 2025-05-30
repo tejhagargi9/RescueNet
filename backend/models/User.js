@@ -19,6 +19,22 @@ const UserSchema = new mongoose.Schema({
   imageUrl: { type: String },
   onboarded: { type: Boolean, default: false },
 
+  fcmToken: { // For volunteers
+    type: String,
+    default: null,
+  },
+  currentLocation: { // For volunteers, GeoJSON Point
+    type: {
+      type: String,
+      enum: ['Point'],
+      default: 'Point',
+    },
+    coordinates: { // [longitude, latitude]
+      type: [Number],
+      default: [0, 0], // Default to a neutral point or handle if not set
+    },
+  },
+
   // Citizen-specific fields
   age: { type: Number },
   disabilities: { type: String },
@@ -35,4 +51,5 @@ const UserSchema = new mongoose.Schema({
   clerkCreatedAt: { type: Date },
 }, { timestamps: true }); // Adds createdAt and updatedAt for our DB records
 
+UserSchema.index({ currentLocation: '2dsphere' });
 module.exports = mongoose.model('User', UserSchema);

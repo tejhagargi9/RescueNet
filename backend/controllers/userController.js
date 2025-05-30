@@ -39,6 +39,66 @@ const getCurrentUser = async (req, res, next) => {
   }
 };
 
+const updateUserFCMToken = async (req, res) => {
+  const { fcmToken } = req.body;
+  // req.user.id should be available from your authentication middleware
+  const userId = req.user?.id;
+
+
+  if (!userId) {
+    return res.status(401).json({ message: 'User not authenticated.' });
+  }
+  if (!fcmToken) {
+    return res.status(400).json({ message: 'FCM token is required.' });
+  }
+
+  try {
+    const user = await User.findByIdAndUpdate(userId, { fcmToken }, { new: true });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+    res.status(200).json({ message: 'FCM token updated successfully.' });
+  } catch (error) {
+    console.error('Error updating FCM token:', error);
+    res.status(500).json({ message: 'Server error while updating FCM token.' });
+  }
+};
+
+// @desc    Update current location for a logged-in volunteer
+// @route   POST /api/users/location
+// @access  Private (for Volunteers)
+const updateUserLocation = async (req, res) => {
+  const { latitude, longitude } = req.body;
+  const userId = req.user?.id;
+
+  if (!userId) {
+    return res.status(401).json({ message: 'User not authenticated.' });
+  }
+  if (typeof latitude !== 'number' || typeof longitude !== 'number') {
+    return res.status(400).json({ message: 'Valid latitude and longitude are required.' });
+  }
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+    if (user.userType !== 'volunteer') {
+      return res.status(403).json({ message: 'Only volunteers can update active location.' });
+    }
+
+    user.currentLocation = {
+      type: 'Point',
+      coordinates: [longitude, latitude], // GeoJSON: longitude first
+    };
+    await user.save();
+    res.status(200).json({ message: 'Location updated successfully.' });
+  } catch (error) {
+    console.error('Error updating location:', error);
+    res.status(500).json({ message: 'Server error while updating location.' });
+  }
+};
+
 // Onboard or Update user profile
 const onboardOrUpdateUser = async (req, res, next) => {
   try {
@@ -132,4 +192,6 @@ module.exports = {
   getCurrentUser,
   onboardOrUpdateUser,
   deleteCurrentUser,
+  updateUserFCMToken,
+  updateUserLocation
 };

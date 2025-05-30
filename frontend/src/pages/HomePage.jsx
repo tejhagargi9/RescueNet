@@ -5,6 +5,7 @@ import {
   Play, Download, Smartphone, Wifi
 } from 'lucide-react';
 import Flow from '../components/OnboardingFlow';
+import { Link } from 'react-router-dom';
 
 const Home = () => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -179,11 +180,13 @@ const Home = () => {
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16">
-              <button className="group bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white px-8 py-4 rounded-full text-lg font-semibold transition-all duration-300 hover:scale-105 shadow-xl hover:shadow-2xl hover:shadow-red-500/50 flex items-center gap-3">
-                <AlertTriangle className="w-6 h-6" />
-                Emergency SOS
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </button>
+              <Link to="/sos">
+                <button className="group bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white px-8 py-4 rounded-full text-lg font-semibold transition-all duration-300 hover:scale-105 shadow-xl hover:shadow-2xl hover:shadow-red-500/50 flex items-center gap-3">
+                  <AlertTriangle className="w-6 h-6" />
+                  Emergency SOS
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </button>
+              </Link>
               <button className="group bg-white/80 backdrop-blur-sm hover:bg-white text-gray-800 px-8 py-4 rounded-full text-lg font-semibold transition-all duration-300 hover:scale-105 shadow-xl border border-gray-200/50 flex items-center gap-3">
                 <Play className="w-6 h-6" />
                 Watch Demo
