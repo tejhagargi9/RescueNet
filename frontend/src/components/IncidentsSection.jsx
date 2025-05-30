@@ -1,6 +1,6 @@
 import React, { useEffect, useContext, useState } from 'react';
 import { IncidentContext } from '../context/IncidentContext';
-import IncidentForm from './IncidentForm';
+import IncidentForm from './models/IncidentForm';
 import { PlusCircle, Edit3, Trash2, FileText, Image as ImageIcon, MapPin } from 'lucide-react';
 
 const IncidentsSection = () => {

@@ -39,7 +39,7 @@ const RescueNetNavbar = () => {
     { id: 'home', icon: Home, label: 'Home', path: '/' },
     { id: 'communities', icon: Users, label: 'Communities', path: '/communities' }, // Example path
     { id: 'track', icon: MapPin, label: 'Track', path: '/track' }, // Example path
-    { id: 'help', icon: Heart, label: 'Help', path: '/help' }, // Example path
+    { id: 'sos', icon: Heart, label: 'SOS', path: '/sos' }, // Example path
     { id: 'admin', icon: Heart, label: 'Admin', path: '/admin' }, // Example path
   ];
 

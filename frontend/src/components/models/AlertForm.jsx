@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { IncidentContext } from '../context/IncidentContext';
-import { UploadCloud, X, RotateCcw } from 'lucide-react';
+import { AlertContext } from '../../context/AlertContext';
+import { UploadCloud, X, Image as ImageIcon, RotateCcw } from 'lucide-react';
 
-const IncidentForm = ({ incidentToEdit, onFormSubmit, onCancel }) => {
-  const { loading, error, setError } = useContext(IncidentContext);
+const AlertForm = ({ alertToEdit, onFormSubmit, onCancel }) => {
+  const { loading, error, setError } = useContext(AlertContext);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [incidentPlace, setIncidentPlace] = useState('');
+  const [places, setPlaces] = useState('');
+  const [disasterDateTime, setDisasterDateTime] = useState('');
   const [image, setImage] = useState(null);
   const [imagePreview, setImagePreview] = useState('');
   const [existingImageUrl, setExistingImageUrl] = useState('');
@@ -14,22 +15,24 @@ const IncidentForm = ({ incidentToEdit, onFormSubmit, onCancel }) => {
 
   useEffect(() => {
     setError(null);
-    if (incidentToEdit) {
-      setTitle(incidentToEdit.title);
-      setDescription(incidentToEdit.description);
-      setIncidentPlace(incidentToEdit.incidentPlace);
+    if (alertToEdit) {
+      setTitle(alertToEdit.title);
+      setDescription(alertToEdit.description);
+      setPlaces(alertToEdit.places.join(', '));
+      setDisasterDateTime(alertToEdit.disasterDateTime ? new Date(alertToEdit.disasterDateTime).toISOString().substring(0, 16) : '');
       setImage(null);
       setImagePreview('');
-      setExistingImageUrl(incidentToEdit.imageUrl || '');
+      setExistingImageUrl(alertToEdit.imageUrl || '');
     } else {
       setTitle('');
       setDescription('');
-      setIncidentPlace('');
+      setPlaces('');
+      setDisasterDateTime('');
       setImage(null);
       setImagePreview('');
       setExistingImageUrl('');
     }
-  }, [incidentToEdit, setError]);
+  }, [alertToEdit, setError]);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -44,38 +47,39 @@ const IncidentForm = ({ incidentToEdit, onFormSubmit, onCancel }) => {
     setImage(null);
     setImagePreview('');
     setExistingImageUrl('');
-    const fileInput = document.getElementById('incident-image-upload');
-    if (fileInput) fileInput.value = "";
+    const fileInput = document.getElementById('alert-image-upload');
+    if (fileInput) fileInput.value = ""; // Reset file input
   }
-
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
-    const incidentData = {
+    const alertData = {
       title,
       description,
-      incidentPlace,
+      places,
+      disasterDateTime,
       image,
     };
 
-    if (incidentToEdit) {
+    if (alertToEdit) {
       if (!image && !existingImageUrl) {
-        incidentData.imageUrl = "";
+        alertData.imageUrl = "";
       } else if (!image && existingImageUrl) {
-        incidentData.imageUrl = existingImageUrl;
+        alertData.imageUrl = existingImageUrl;
       }
     }
 
-    const success = await onFormSubmit(incidentData);
-    if (success && !incidentToEdit) {
+    const success = await onFormSubmit(alertData);
+    if (success && !alertToEdit) {
       setTitle('');
       setDescription('');
-      setIncidentPlace('');
+      setPlaces('');
+      setDisasterDateTime('');
       setImage(null);
       setImagePreview('');
       setExistingImageUrl('');
-      const fileInput = document.getElementById('incident-image-upload');
+      const fileInput = document.getElementById('alert-image-upload');
       if (fileInput) fileInput.value = "";
     }
   };
@@ -85,22 +89,28 @@ const IncidentForm = ({ incidentToEdit, onFormSubmit, onCancel }) => {
 
   return (
     <form onSubmit={handleSubmit} className="mb-6 p-6 bg-white shadow-lg rounded-lg">
-      <h3 className="text-2xl font-semibold mb-6 text-slate-700">{incidentToEdit ? 'Edit Incident Report' : 'Create New Incident Report'}</h3>
+      <h3 className="text-2xl font-semibold mb-6 text-slate-700">{alertToEdit ? 'Edit Disaster Alert' : 'Create New Disaster Alert'}</h3>
       {error && <p className="text-sm text-red-600 bg-red-100 p-3 rounded-md mb-4">Error: {error}</p>}
 
-      <div className="mb-4">
-        <label htmlFor="incident-title" className={labelClass}>Title:</label>
-        <input id="incident-title" type="text" value={title} onChange={(e) => setTitle(e.target.value)} required className={inputClass} />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+        <div>
+          <label htmlFor="alert-title" className={labelClass}>Title:</label>
+          <input id="alert-title" type="text" value={title} onChange={(e) => setTitle(e.target.value)} required className={inputClass} />
+        </div>
+        <div>
+          <label htmlFor="alert-datetime" className={labelClass}>Date and Time of Disaster:</label>
+          <input id="alert-datetime" type="datetime-local" value={disasterDateTime} onChange={(e) => setDisasterDateTime(e.target.value)} required className={inputClass} />
+        </div>
       </div>
 
       <div className="mb-4">
-        <label htmlFor="incident-place" className={labelClass}>Incident Place:</label>
-        <input id="incident-place" type="text" value={incidentPlace} onChange={(e) => setIncidentPlace(e.target.value)} required className={inputClass} placeholder="e.g., Main Street, Sector 5" />
+        <label htmlFor="alert-places" className={labelClass}>Affected Places (comma-separated):</label>
+        <input id="alert-places" type="text" value={places} onChange={(e) => setPlaces(e.target.value)} required className={inputClass} placeholder="e.g., City A, Town B, Region C" />
       </div>
 
       <div className="mb-4">
-        <label htmlFor="incident-description" className={labelClass}>Description:</label>
-        <textarea id="incident-description" value={description} onChange={(e) => setDescription(e.target.value)} required rows="4" className={inputClass}></textarea>
+        <label htmlFor="alert-description" className={labelClass}>Description:</label>
+        <textarea id="alert-description" value={description} onChange={(e) => setDescription(e.target.value)} required rows="4" className={inputClass}></textarea>
       </div>
 
       <div className="mb-6">
@@ -117,9 +127,9 @@ const IncidentForm = ({ incidentToEdit, onFormSubmit, onCancel }) => {
               </>
             ) : (
               <div className="flex text-sm text-slate-600">
-                <label htmlFor="incident-image-upload" className="relative cursor-pointer bg-white rounded-md font-medium text-sky-600 hover:text-sky-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-sky-500">
+                <label htmlFor="alert-image-upload" className="relative cursor-pointer bg-white rounded-md font-medium text-sky-600 hover:text-sky-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-sky-500">
                   <span>Upload a file</span>
-                  <input id="incident-image-upload" name="image" type="file" accept="image/*" className="sr-only" onChange={handleImageChange} />
+                  <input id="alert-image-upload" name="image" type="file" accept="image/*" className="sr-only" onChange={handleImageChange} />
                 </label>
                 <p className="pl-1">or drag and drop</p>
               </div>
@@ -138,7 +148,7 @@ const IncidentForm = ({ incidentToEdit, onFormSubmit, onCancel }) => {
         <button type="submit" disabled={loading} className="inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-sky-600 hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 disabled:opacity-50">
           {loading ? (
             <RotateCcw className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" />
-          ) : (incidentToEdit ? 'Update Incident' : 'Create Incident')}
+          ) : (alertToEdit ? 'Update Alert' : 'Create Alert')}
           {loading && 'Processing...'}
         </button>
       </div>
@@ -146,4 +156,4 @@ const IncidentForm = ({ incidentToEdit, onFormSubmit, onCancel }) => {
   );
 };
 
-export default IncidentForm;
+export default AlertForm;

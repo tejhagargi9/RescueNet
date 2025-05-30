@@ -92,7 +92,7 @@ const Home = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-blue-100 to-indigo-200 relative overflow-hidden">
+    <div className="min-h-screen pt-14 bg-gradient-to-br from-slate-100 via-blue-100 to-indigo-200 relative overflow-hidden">
 
       {/* Flow Component */}
       <Flow onComplete={() => setShowFlow(false)} />

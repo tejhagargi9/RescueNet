@@ -1,6 +1,6 @@
 import React, { useEffect, useContext, useState } from 'react';
 import { AlertContext } from '../context/AlertContext';
-import AlertForm from './AlertForm';
+import AlertForm from './models/AlertForm';
 import { PlusCircle, Edit3, Trash2, AlertTriangle, Image as ImageIcon, Clock, MapPin } from 'lucide-react';
 
 const AlertsSection = () => {

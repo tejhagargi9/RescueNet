@@ -12,6 +12,10 @@ import DisasterPreparednessApp from './pages/DisastersInfoPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import { AlertProvider } from './context/AlertContext';
 import { IncidentProvider } from './context/IncidentContext';
+import CommunitiesPage from './pages/CommunitiesPage';
+import { ReportProvider } from './context/ReportContext';
+import ViewReportsMapPage from './pages/ViewReportsMapPage';
+import CreateReportPage from './pages/CreateReportPage';
 
 // Component to handle redirection after sign in/out and onboarding check
 function AppContent() {
@@ -33,27 +37,20 @@ function AppContent() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/admin" element={<AdminDashboardPage />} />
-
+        <Route path="/communities" element={<CommunitiesPage />} />
+        <Route path="/track" element={<ViewReportsMapPage />} />
+        <Route path="/sos" element={<CreateReportPage />} />
+        <Route path="/account" element={<AccountPage />} />
         {/* Protected Routes */}
         <Route element={<ProtectedRoute />}>
-          <Route path="/account" element={<AccountPage />} />
+
           {/* Add other protected routes here */}
         </Route>
 
         <Route path="/disasterPrepare" element={<DisasterPreparednessApp />} />
 
-        {/* Example of a route that requires sign-in but not necessarily full onboarding yet */}
-        {/* <Route path="/some-feature" element={
-          <SignedIn>
-            <SomeFeaturePage />
-          </SignedIn>
-          <SignedOut>
-            <RedirectToSignIn />
-          </SignedOut>
-        }/> */}
-
         {/* Fallback for any other route */}
-        <Route path="*" element={<HomePage />} />
+        <Route path="*" element={<div>404 - Page Not Found</div>} />
       </Routes>
     </>
   );
@@ -66,9 +63,11 @@ function App() {
       <AuthProvider>
         <AlertProvider>
           <IncidentProvider>
-            <ClerkLoaded>
-              <AppContent />
-            </ClerkLoaded>
+            <ReportProvider>
+              <ClerkLoaded>
+                <AppContent />
+              </ClerkLoaded>
+            </ReportProvider>
           </IncidentProvider>
         </AlertProvider>
       </AuthProvider>
