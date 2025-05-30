@@ -5,6 +5,7 @@ const connectDB = require('./config/db');
 const errorHandler = require('./middleware/errorHandler');
 
 const userRoutes = require('./routes/userRoutes');
+const disasterAlertRoutes = require('./routes/disasterAlertRoutes');
 
 const app = express();
 
@@ -22,6 +23,7 @@ app.use(express.json());
 
 // Mount Routes
 app.use('/api/users', userRoutes);
+app.use('/api/alerts', disasterAlertRoutes);
 
 
 // Root route for testing

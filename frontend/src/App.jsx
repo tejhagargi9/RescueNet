@@ -9,6 +9,8 @@ import AccountPage from './pages/AccountPage';
 import { AuthProvider, useAuthContext } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute'; // Optional
 import DisasterPreparednessApp from './pages/DisastersInfoPage';
+import AdminPage from './pages/AdminPage';
+import { AlertProvider } from './context/AlertContext';
 
 // Component to handle redirection after sign in/out and onboarding check
 function AppContent() {
@@ -29,7 +31,7 @@ function AppContent() {
       <OnboardingFlow onComplete={() => console.log("Onboarding completed/closed.")} />
       <Routes>
         <Route path="/" element={<HomePage />} />
-        
+        <Route path="/admin" element={<AdminPage />} />
 
         {/* Protected Routes */}
         <Route element={<ProtectedRoute />}>
@@ -61,9 +63,11 @@ function App() {
   return (
     <Router>
       <AuthProvider> {/* AuthProvider wraps everything that needs auth context */}
-        <ClerkLoaded> {/* Ensures Clerk is loaded before rendering content reliant on it */}
-          <AppContent />
-        </ClerkLoaded>
+        <AlertProvider>
+          <ClerkLoaded> {/* Ensures Clerk is loaded before rendering content reliant on it */}
+            <AppContent />
+          </ClerkLoaded>
+        </AlertProvider>
       </AuthProvider>
     </Router>
   );

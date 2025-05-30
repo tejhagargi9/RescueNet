@@ -6,11 +6,14 @@
   "dependencies": {
     "@clerk/clerk-sdk-node": "^4.13.23",
     "bcrypt": "^6.0.0",
+    "cloudinary": "^2.6.1",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "mongoose": "^8.15.0",
+    "multer": "^2.0.0",
     "nodemon": "^3.1.10",
+    "stream": "^0.0.3",
     "svix": "^1.66.0"
   }
 }

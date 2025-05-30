@@ -40,6 +40,7 @@ const RescueNetNavbar = () => {
     { id: 'communities', icon: Users, label: 'Communities', path: '/communities' }, // Example path
     { id: 'track', icon: MapPin, label: 'Track', path: '/track' }, // Example path
     { id: 'help', icon: Heart, label: 'Help', path: '/help' }, // Example path
+    { id: 'admin', icon: Heart, label: 'Admin', path: '/admin' }, // Example path
   ];
 
   const handleSignOut = async () => {

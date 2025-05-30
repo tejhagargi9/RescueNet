@@ -20,6 +20,7 @@ if (!rootElement) {
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
     <ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/">
+
       <App />
     </ClerkProvider>
   </React.StrictMode>
