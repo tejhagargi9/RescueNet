@@ -10,6 +10,7 @@ const CreateReportPage = () => {
 
   const [message, setMessage] = useState('');
   const [latitude, setLatitude] = useState(null);
+
   const [longitude, setLongitude] = useState(null);
   const [locationStatus, setLocationStatus] = useState('idle'); // idle, fetching, success, error
   const [locationError, setLocationError] = useState('');

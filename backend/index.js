@@ -25,11 +25,13 @@ app.use(cors({
 
 app.use(express.json());
 
+
 // Mount Routes
 app.use('/api/users', userRoutes);
 app.use('/api/alerts', disasterAlertRoutes);
 app.use('/api/incidents', incidentRoutes);
 app.use('/api/reports', reportRoutes);
+
 
 
 // Root route for testing
