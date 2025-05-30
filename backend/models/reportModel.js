@@ -15,16 +15,9 @@ const ReportSchema = new mongoose.Schema({
     type: Number,
     required: [true, 'Longitude is required'],
   },
-  // Optional: To associate with a user if your app has authentication
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User', // Replace 'User' with your actual User model name if you have one
-    required: false, // Make true if user must be logged in to report
-  },
-  // Optional: user's name for quick display, if available and desired
-  userName: {
+  filter: {
     type: String,
-    required: false,
+    trim: true,
   },
   timestamp: {
     type: Date,
@@ -32,7 +25,6 @@ const ReportSchema = new mongoose.Schema({
   },
 });
 
-// Optional: Create a 2dsphere index for geospatial queries if needed later
-ReportSchema.index({ location: '2dsphere' }); // You'd need to store lat/long as a GeoJSON point for this
+
 
 module.exports = mongoose.model('Report', ReportSchema);

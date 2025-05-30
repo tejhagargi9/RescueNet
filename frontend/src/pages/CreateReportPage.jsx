@@ -27,8 +27,8 @@ const CreateReportPage = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          setLatitude(position.coords.latitude + 0.0001);
-          setLongitude(position.coords.longitude + 0.0001);
+          setLatitude(position.coords.latitude);
+          setLongitude(position.coords.longitude);
           setLocationStatus('success');
         },
         (err) => {
@@ -79,9 +79,7 @@ const CreateReportPage = () => {
       message,
       latitude,
       longitude,
-      // Example: if you want to include user info
-      // userId: currentUser?._id,
-      // userName: currentUser?.name
+      filter: 'danger',
     };
 
     const success = await addReport(reportData);
