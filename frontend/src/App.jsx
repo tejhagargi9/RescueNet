@@ -16,6 +16,9 @@ import CommunitiesPage from './pages/CommunitiesPage';
 import { ReportProvider } from './context/ReportContext';
 import ViewReportsMapPage from './pages/ViewReportsMapPage';
 import CreateReportPage from './pages/CreateReportPage';
+import NotificationToaster from './components/map/NotificationToaster';
+import { NotificationProvider } from './context/NotificationContext';
+import { DisasterDataProvider } from './context/DisasterDataContext';
 
 // Component to handle redirection after sign in/out and onboarding check
 function AppContent() {
@@ -64,9 +67,14 @@ function App() {
         <AlertProvider>
           <IncidentProvider>
             <ReportProvider>
-              <ClerkLoaded>
-                <AppContent />
-              </ClerkLoaded>
+              <NotificationProvider>
+                <DisasterDataProvider>
+                  <ClerkLoaded>
+                    <NotificationToaster />
+                    <AppContent />
+                  </ClerkLoaded>
+                </DisasterDataProvider>
+              </NotificationProvider>
             </ReportProvider>
           </IncidentProvider>
         </AlertProvider>
