@@ -3,7 +3,7 @@ const multer = require('multer');
 const incidentController = require('../controllers/incidentController');
 
 const router = express.Router();
-
+ 
 const storage = multer.memoryStorage();
 const upload = multer({
   storage: storage,
