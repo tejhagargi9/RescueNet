@@ -2,14 +2,22 @@ import React, { useState, useEffect } from 'react';
 import {
   Shield, AlertTriangle, MapPin, Heart, Users, Phone, Clock,
   Star, CheckCircle, Zap, Globe, Award, TrendingUp, ArrowRight,
-  Play, Download, Smartphone, Wifi
+  Play, Download, Smartphone, Wifi,
+  MessageSquare, X, Bot as BotIcon, Send as SendIcon, UserCircle // Added new icons
 } from 'lucide-react';
-import Flow from '../components/OnboardingFlow';
+import Flow from '../components/OnboardingFlow'; // Assuming Flow component is for onboarding
+import Chatbot from '../components/Chatbot'; // Import the new Chatbot component
+import { useAuthContext } from '../context/AuthContext'; // Adjust path if needed
 
 const Home = () => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [scrollY, setScrollY] = useState(0);
-  const [showFlow, setShowFlow] = useState(false);
+  
+  // State for the original Flow component (logic might need review based on its purpose)
+  const [showFlowComponent, setShowFlowComponent] = useState(false); 
+  
+  const [showChatbot, setShowChatbot] = useState(false);
+  const { currentUser, isLoading: authLoading } = useAuthContext();
 
   useEffect(() => {
     const handleMouseMove = (e) => {
@@ -31,6 +39,15 @@ const Home = () => {
       window.removeEventListener('scroll', handleScroll);
     };
   }, []);
+
+  // Example: Logic for showing Onboarding Flow if user is not onboarded
+  // This is an assumption about 'Flow' component's purpose. Adjust as needed.
+  useEffect(() => {
+    if (!authLoading && currentUser && !currentUser.isOnboarded) {
+      // setShowFlowComponent(true); // Enable this if Flow is for onboarding new users
+    }
+  }, [currentUser, authLoading]);
+
 
   const stats = [
     { icon: Users, number: '50K+', label: 'Lives Protected', color: 'from-blue-500 to-cyan-500' },
@@ -55,7 +72,7 @@ const Home = () => {
       delay: 100
     },
     {
-      icon: Users,
+      icon: Users, // Note: Users icon is imported twice in original, kept one for features
       title: 'Community Shield',
       description: 'Connect with verified local volunteers and first responders in your neighborhood.',
       color: 'from-green-500 to-teal-500',
@@ -91,15 +108,21 @@ const Home = () => {
     }
   ];
 
+  const isCitizenUser = currentUser?.role === 'citizen';
+
   return (
     <div className="min-h-screen pt-14 bg-gradient-to-br from-slate-100 via-blue-100 to-indigo-200 relative overflow-hidden">
 
-      {/* Flow Component */}
-      <Flow onComplete={() => setShowFlow(false)} />
+      {/* Original Flow Component - its visibility logic might need adjustment based on actual use case */}
+      {/* For example, if it's an onboarding flow: */}
+      {/* {showFlowComponent && <Flow onComplete={() => setShowFlowComponent(false)} /> } */}
+      {/* Or as originally: */}
+      <Flow onComplete={() => setShowFlowComponent(false)} />
+
 
       {/* Animated Background */}
       <div className="fixed inset-0 z-0">
-        {/* Dynamic Gradient Orbs */}
+        {/* ... (Animated Background code remains the same) ... */}
         <div
           className="absolute w-96 h-96 bg-gradient-to-r from-blue-500/40 to-purple-600/40 rounded-full blur-3xl animate-pulse"
           style={{
@@ -124,8 +147,6 @@ const Home = () => {
             transform: `translate(-50%, -50%) rotate(${scrollY * 0.1}deg)`
           }}
         />
-
-        {/* Animated Lines */}
         <svg className="absolute inset-0 w-full h-full opacity-20" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -157,7 +178,7 @@ const Home = () => {
 
       {/* Main Content */}
       <div className="relative z-10">
-
+        {/* ... (Hero, Features, Testimonials, CTA Sections remain the same) ... */}
         {/* Hero Section */}
         <section className="min-h-screen flex items-center justify-center px-4 pt-20">
           <div className="max-w-6xl mx-auto text-center">
@@ -288,8 +309,21 @@ const Home = () => {
             </div>
           </div>
         </section>
-
       </div>
+
+      {/* Chatbot Floating Button and Component */}
+      {!authLoading && isCitizenUser && (
+        <>
+          <button
+            onClick={() => setShowChatbot(prev => !prev)}
+            className={`fixed bottom-5 right-5 md:bottom-8 md:right-8 p-4 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-white shadow-xl hover:from-blue-600 hover:to-purple-700 hover:scale-110 transition-all duration-300 z-40 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500`}
+            aria-label={showChatbot ? "Close chat" : "Open chat assistant"}
+          >
+            {showChatbot ? <X size={28} /> : <MessageSquare size={28} />}
+          </button>
+          {showChatbot && <Chatbot onClose={() => setShowChatbot(false)} />}
+        </>
+      )}
     </div>
   );
 };
