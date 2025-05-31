@@ -1,4 +1,3 @@
-// ChatbotContext.jsx
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import apiClient from '../api/axiosConfig'; // Ensure this is properly configured
 
@@ -16,8 +15,9 @@ export const ChatbotProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const sendMessage = useCallback(async (userPrompt) => {
-    console.log("User Prompt : ",userPrompt)
+  // Modified sendMessage to accept an optional location object
+  const sendMessage = useCallback(async (userPrompt, location) => {
+    console.log("ChatbotContext: Sending message - Prompt:", userPrompt, "Location:", location);
     if (!userPrompt.trim()) return; // Don't send empty messages
 
     const userMessage = {
@@ -33,9 +33,18 @@ export const ChatbotProvider = ({ children }) => {
     setError(null);
 
     try {
-      // The backend /analyzeText endpoint now expects { prompt: userPrompt }
+      // Prepare payload, including location if available and valid
+      const payload = { prompt: userPrompt };
+      if (location && typeof location.latitude === 'number' && typeof location.longitude === 'number') {
+        payload.location = {
+          latitude: location.latitude,
+          longitude: location.longitude,
+        };
+      }
+
+      // The backend /ai/analyzeText endpoint now expects { prompt: userPrompt, location?: {latitude, longitude} }
       // and returns { reply: botReply }
-      const response = await apiClient.post('/ai/analyzeText', { prompt: userPrompt });
+      const response = await apiClient.post('/ai/analyzeText', payload);
       const botReply = response.data.reply;
 
       const botMessage = {
@@ -46,13 +55,12 @@ export const ChatbotProvider = ({ children }) => {
       };
 
       setChatHistory((prev) => [...prev, botMessage]);
-      return botReply; // Return for potential immediate use, though history is the main source
+      return botReply; 
     } catch (err) {
       console.error("Chatbot request failed:", err);
       const errorMessage = err.response?.data?.message || err.message || "Failed to get a response from the chatbot.";
       setError(errorMessage);
 
-      // Optionally add an error message to chat history
       const errorBotMessage = {
         id: `error-bot-${Date.now()}`,
         sender: 'bot',
@@ -60,12 +68,10 @@ export const ChatbotProvider = ({ children }) => {
         timestamp: new Date().toISOString(),
       };
       setChatHistory((prev) => [...prev, errorBotMessage]);
-      // Do not re-throw here if you want the flow to continue and display error in chat
-      // throw err; // Re-throwing will make the calling component's catch block execute
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, []); // useCallback dependencies are correct
 
   const clearChat = () => {
     setChatHistory([initialBotMessage]); // Reset to initial message

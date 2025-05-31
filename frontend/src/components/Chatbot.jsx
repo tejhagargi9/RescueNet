@@ -2,9 +2,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Send, X, Bot, UserCircle, AlertTriangle } from 'lucide-react'; // Added AlertTriangle for errors
 import { useChatbotContext } from '../context/ChatBotContext'; // Adjust path if necessary
+import { useAuthContext } from '../context/AuthContext'; // Import AuthContext
 
 const Chatbot = ({ onClose }) => {
   const { chatHistory, isLoading, error, sendMessage, clearChat } = useChatbotContext();
+  const { currentUser } = useAuthContext(); // Get currentUser from AuthContext
   const [inputValue, setInputValue] = useState('');
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -24,8 +26,13 @@ const Chatbot = ({ onClose }) => {
     if (trimmedInput === '') return;
 
     setInputValue(''); // Clear input immediately
-    await sendMessage(trimmedInput); // Call context's sendMessage
-    // No need to manually set messages or bot typing, context handles it
+
+    // Get location from currentUser if available
+    // Assuming currentUser.location is like { latitude: number, longitude: number } or undefined
+    const userLocation = currentUser?.location;
+
+    await sendMessage(trimmedInput, userLocation); // Pass user input and location to context's sendMessage
+    
     inputRef.current?.focus(); // Refocus after send
   };
 
@@ -65,15 +72,15 @@ const Chatbot = ({ onClose }) => {
         {chatHistory.map((msg) => (
           <div key={msg.id || msg.timestamp} className={`flex items-end gap-2 ${msg.sender === 'user' ? 'justify-end' : ''}`}>
             {msg.sender === 'bot' && (
-              <div className={`flex-shrink-0 w-8 h-8 ${msg.text.toLowerCase().includes('error:') ? 'bg-red-500' : 'bg-blue-500'} rounded-full flex items-center justify-center text-white`}>
-                {msg.text.toLowerCase().includes('error:') ? <AlertTriangle size={18} /> : <Bot size={18} />}
+              <div className={`flex-shrink-0 w-8 h-8 ${msg.text.toLowerCase().includes('error:') || msg.text.toLowerCase().includes('sorry, i encountered an error:') ? 'bg-red-500' : 'bg-blue-500'} rounded-full flex items-center justify-center text-white`}>
+                {msg.text.toLowerCase().includes('error:') || msg.text.toLowerCase().includes('sorry, i encountered an error:') ? <AlertTriangle size={18} /> : <Bot size={18} />}
               </div>
             )}
             <div
               className={`max-w-[75%] p-3 rounded-2xl shadow ${
                 msg.sender === 'user'
                   ? 'bg-blue-500 text-white rounded-br-none'
-                  : msg.text.toLowerCase().includes('error:')
+                  : msg.text.toLowerCase().includes('error:') || msg.text.toLowerCase().includes('sorry, i encountered an error:')
                     ? 'bg-red-100 text-red-700 rounded-bl-none'
                     : 'bg-gray-200 text-gray-800 rounded-bl-none'
               }`}
@@ -136,4 +143,4 @@ const Chatbot = ({ onClose }) => {
   );
 };
 
-export default Chatbot; 
+export default Chatbot;
