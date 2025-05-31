@@ -1,8 +1,7 @@
-// controllers/aiController.js
 require("dotenv").config(); // Ensures environment variables are loaded
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
-// --- Existing code for getAIResponseForCoordinates (keep it as is) ---
+// --- Existing code for getAIResponseForCoordinates (remains unchanged) ---
 const systemPromptForCoordinates = `You are a highly accurate geolocation AI. Your sole task is to return the geographical coordinates (latitude and longitude) for a given place or area name.
 
 The user will provide a place name.
@@ -85,8 +84,7 @@ const getAIResponseForCoordinates = async (req, res, next) => {
 
 // --- MODIFIED CONTROLLER FOR TEXT ANALYSIS (CHATBOT) ---
 
-// System prompt to instruct the AI on its task for general chat
-const systemPromptForChatbot = `You are RescueNet Assistant, a helpful, friendly, and concise AI assistant.
+const systemPromptForChatbotBase = `You are RescueNet Assistant, a helpful, friendly, and concise AI assistant.
 Your primary goal is to assist users with their queries related to RescueNet, safety, or general information.
 If a user's query sounds like an emergency or they explicitly mention an emergency, you MUST advise them to use the Emergency SOS button in the app or call their local emergency number immediately.
 For other queries, provide clear and brief answers.
@@ -97,30 +95,73 @@ Do not make up information. If you don't know an answer, say so.
 /**
  * @desc    Get an AI-generated response for a user's chat message.
  * @route   POST /api/ai/analyzeText
- * @access  Public (or as configured)
+ * @access  Public (or as configured by your auth middleware)
  */
 const getAIResponseForTextAnalysis = async (req, res, next) => {
   try {
-    const { prompt: userQuery } = req.body; // Expecting a 'prompt' field with the user's message
-    console.log("User prompt at backend : ", req.body)
+    const { prompt: userQuery, location } = req.body; // Expect 'prompt' and optional 'location'
 
-    console.log("Received request for chatbot response.");
-    console.log("User Query (from 'prompt' field):", userQuery);
+    console.log("AI Controller: Received request for chatbot response.");
+    console.log("AI Controller: User Query:", userQuery);
+    if (location) {
+      console.log("AI Controller: User Location:", location);
+    }
 
     if (!userQuery || typeof userQuery !== 'string' || userQuery.trim() === "") {
       return res.status(400).json({ message: "A 'prompt' field with the user's query is required and must be a non-empty string." });
     }
 
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    let dynamicSystemInstructions = ""; // To hold location-specific instructions
 
-    const fullPromptToAI = `${systemPromptForChatbot}\n\nUser's message: "${userQuery}"\n\nAssistant's response:`;
-    // console.log("\nFull prompt to AI for chatbot:\n", fullPromptToAI); // For debugging
+    // Check if valid location data is provided and if query contains relevant keywords
+    if (location && typeof location.latitude === 'number' && typeof location.longitude === 'number') {
+      const keywords = ["food", "shelter", "hospital", "stay", "help", "medicine", "doctor", "clinic", "eat", "hungry", "sleep", "safe place", "assistance", "support", "emergency kit", "first aid", "water", "supplies", "find", "where is", "nearby", "need", "looking for"];
+      const queryLowerCase = userQuery.toLowerCase();
+      const queryContainsKeyword = keywords.some(keyword => queryLowerCase.includes(keyword));
+
+      if (queryContainsKeyword) {
+        console.log("AI Controller: Location and relevant keywords found. Adding dynamic instructions for location-based suggestions.");
+        dynamicSystemInstructions = `
+CONTEXT: The user is at approximately Latitude ${location.latitude}, Longitude ${location.longitude} and is asking for nearby resources (e.g., related to food, shelter, medical help).
+User's Query: "${userQuery}"
+
+TASK: Based on their location and query, try to suggest types of places or general areas where they might find resources.
+1.  Acknowledge their query and their general location.
+2.  Based on the prompt provided give the response as fake like.(e.g., there is place where you can get food 2km away, 200m from the place where you are you can get the shelter)"
+3.  Keep your response empathetic, clear, and actionable. Focus on guiding them on how to find help while being transparent about your limitations.
+
+Example for food query:
+"I understand you're looking for food options near your location there is food shop you can find out there"
+
+Example for medical help query:
+"For medical assistance near latitude ${location.latitude}, longitude ${location.longitude}, people usually look for hospitals, clinics, or pharmacies. Some regions have well-known medical centers or pharmacy chains. However, to find the closest options, their specific services, contact details, and operating hours, it's very important to use a map application on your phone. Search for 'hospitals near me', 'clinics near me', or 'pharmacies near me'. This will give you accurate and up-to-date information for your immediate needs.(Give this all as fake data as response)"
+
+If the query sounds like a critical emergency, prioritize advising them to contact emergency services immediately (e.g., call local emergency number Give fake data...or use the app's SOS feature).
+After providing location-related guidance, you can also offer general safety tips or information related to their query if appropriate, following your primary role as RescueNet Assistant.
+`;
+      }
+    }
+
+    // Construct the final prompt string for Gemini
+    let fullPromptToAI;
+    if (dynamicSystemInstructions) {  
+      // If we have dynamic instructions, they are very specific and include the user query contextually.
+      // We combine the base system prompt with these dynamic instructions.
+      fullPromptToAI = `${systemPromptForChatbotBase}\n\n${dynamicSystemInstructions}\n\nAssistant's response:`;
+    } else {
+      // Standard case: No location or no relevant keywords for location-specific help.
+      fullPromptToAI = `${systemPromptForChatbotBase}\n\nUser's message: "${userQuery}"\n\nAssistant's response:`;
+    }
+
+    // console.log("\nFull prompt to AI for chatbot:\n", fullPromptToAI); // Uncomment for deep debugging of prompts
+
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" }); // Or "gemini-pro" or other suitable model
 
     const result = await model.generateContent(fullPromptToAI);
 
     if (!result.response?.candidates?.[0]?.content?.parts?.[0]?.text) {
-      console.error("AI response structure for chatbot is not as expected:", result);
+      console.error("AI response structure for chatbot is not as expected:", JSON.stringify(result, null, 2));
       return res.status(500).json({ message: "Received an unexpected response structure from AI for chatbot." });
     }
 
@@ -140,7 +181,6 @@ const getAIResponseForTextAnalysis = async (req, res, next) => {
         details: error.response.data
       });
     }
-    // Ensure a default message for other errors
     const errorMessage = error.message || "An unexpected error occurred processing your request.";
     res.status(500).json({ message: errorMessage });
     // next(error); // Use this if you have a global error handler middleware
