@@ -1,7 +1,8 @@
 {
   "scripts": {
     "start": "node index.js",
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "test": "echo \"No tests yet\" && exit 0"
   },
   "dependencies": {
     "@clerk/clerk-sdk-node": "^4.13.23",
